@@ -29,10 +29,10 @@ pub fn named(fields: &FieldsNamed, indexer_name: &str) -> TokenStream {
         };
 
         quote! {
-            crate::types::Range::new(
+            Ok(crate::types::Range::new(
                 #indexer_name.#first_name.get_range().start,
                 #indexer_name.#last_name.get_range().end,
-            )
+            ))
         }
     }
 }
@@ -47,10 +47,10 @@ pub fn unnamed(fields: &FieldsUnnamed, indexer_name: &str) -> TokenStream {
         let last = len - 1;
 
         quote! {
-            crate::types::Range::new(
+            Ok(crate::types::Range::new(
                 #indexer_name.0.get_range().start,
                 #indexer_name.#last.get_range().end,
-            )
+            ))
         }
     }
 }
