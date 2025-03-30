@@ -14,7 +14,7 @@ pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
             Fields::Unnamed(fields) => unnamed(name, fields),
             Fields::Unit => {
                 // return error!("`#[Derive(Range)]` can't be implemented on unit variants.")
-                quote! { Self::#name => Err(crate::types::GetRangeError::ErrorVariant) }
+                quote! { Self::#name => Err(crate::types::GetRangeError::ErrorVariant), }
             }
         };
 
