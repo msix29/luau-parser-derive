@@ -1,3 +1,6 @@
+#[macro_use]
+mod macros;
+
 mod range;
 
 use proc_macro::TokenStream;

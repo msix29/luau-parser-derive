@@ -12,14 +12,6 @@ pub fn generate(input: TokenStream) -> TokenStream {
     match input.data {
         Data::Struct(ref data_struct) => struct_impl::generate(&input, data_struct),
         Data::Enum(data_enum) => todo!(),
-        Data::Union(_) => {
-            let err = syn::Error::new(
-                Span::call_site(),
-                "`#[Derive(Range)]` can't be called on unions.",
-            )
-            .to_compile_error();
-
-            quote!(#err).into()
-        }
+        Data::Union(_) => error!("`#[Derive(Range)]` can't be called on unions."),
     }
 }

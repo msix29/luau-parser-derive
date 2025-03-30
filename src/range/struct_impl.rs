@@ -7,7 +7,7 @@ pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
     match &data.fields {
         Fields::Named(fields) => named(input, fields),
         Fields::Unnamed(fields) => unnamed(input, fields),
-        Fields::Unit => todo!(),
+        Fields::Unit => error!("`#[Derive(Range)]` can't be implemented on unit structs."),
     }
 }
 
