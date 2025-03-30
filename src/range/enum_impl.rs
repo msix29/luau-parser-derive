@@ -55,8 +55,8 @@ fn named(name: &Ident, fields: &FieldsNamed) -> TokenStream {
 
         quote! {
             Self::#name{ #first_name, #last_name, .. } => crate::types::Range::new(
-                #first_name.get_range().start,
-                #last_name.get_range().end,
+                #first_name.get_range()?.start,
+                #last_name.get_range()?.end,
             ),
         }
     }
@@ -70,8 +70,8 @@ fn unnamed(name: &Ident, fields: &FieldsUnnamed) -> TokenStream {
     } else {
         quote! {
             Self::#name(item1, .., item2) => crate::types::Range::new(
-                item1.get_range().start,
-                item2.get_range().end,
+                item1.get_range()?.start,
+                item2.get_range()?.end,
             ),
         }
     }
