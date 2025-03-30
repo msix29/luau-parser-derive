@@ -1,5 +1,6 @@
 mod enum_impl;
 mod struct_impl;
+mod utils;
 
 use proc_macro::TokenStream;
 use quote::quote;
@@ -13,4 +14,5 @@ pub fn generate(input: TokenStream) -> TokenStream {
         Data::Enum(ref data_enum) => enum_impl::generate(&input, data_enum),
         Data::Union(_) => error!("`#[Derive(Range)]` can't be called on unions."),
     }
+    .into()
 }
