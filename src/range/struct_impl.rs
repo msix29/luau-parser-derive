@@ -2,6 +2,12 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
 
+macro_rules! must_have_one_item {
+    () => {
+        return error!("Structs passed to `#[Derive(Range)]` must have at least one item.")
+    };
+}
+
 #[inline]
 pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
     match &data.fields {
@@ -13,7 +19,12 @@ pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
 
 fn named(input: &DeriveInput, fields: &FieldsNamed) -> TokenStream {
     let name = &input.ident;
-    let first_name = fields.named.first().unwrap().ident.as_ref().unwrap();
+    let Some(first) = fields.named.first() else {
+        must_have_one_item!();
+    };
+    let Some(first_name) = first.ident.as_ref() else {
+        must_have_one_item!();
+    };
 
     if fields.named.len() == 1 {
         quote! {
@@ -26,7 +37,12 @@ fn named(input: &DeriveInput, fields: &FieldsNamed) -> TokenStream {
         }
         .into()
     } else {
-        let last_name = fields.named.last().unwrap().ident.as_ref().unwrap();
+        let Some(last) = fields.named.last() else {
+            must_have_one_item!();
+        };
+        let Some(last_name) = last.ident.as_ref() else {
+            must_have_one_item!();
+        };
 
         quote! {
             impl crate::types::GetRange for #name {
