@@ -1,22 +1,17 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::{DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
-
-use super::utils;
+use syn::{DataStruct, DeriveInput, Expr, Field, Fields, FieldsNamed, FieldsUnnamed, Lit, Meta};
 
 #[inline]
 pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
-    match &data.fields {
-        Fields::Named(fields) => named(input, fields),
-        Fields::Unnamed(fields) => unnamed(input, fields),
-        Fields::Unit => error!("`#[Derive(Range)]` can't be implemented on unit structs."),
-    }
-}
-
-fn named(input: &DeriveInput, fields: &FieldsNamed) -> TokenStream {
     let name = &input.ident;
     let generics = &input.generics;
-    let body = utils::named(fields, "self");
+
+    let body = match &data.fields {
+        Fields::Named(fields) => named(fields),
+        Fields::Unnamed(fields) => unnamed(fields),
+        Fields::Unit => return error!("`#[Derive(Range)]` can't be implemented on unit structs."),
+    };
 
     quote! {
         impl #generics crate::types::GetRange for #name #generics {
@@ -28,17 +23,101 @@ fn named(input: &DeriveInput, fields: &FieldsNamed) -> TokenStream {
     }
 }
 
-fn unnamed(input: &DeriveInput, fields: &FieldsUnnamed) -> TokenStream {
-    let name = &input.ident;
-    let generics = &input.generics;
-    let body = utils::unnamed(fields, "self");
+macro_rules! must_have_one_item {
+    () => {
+        return error!("Structs passed to `#[Derive(Range)]` must have at least one item.")
+    };
+}
 
-    quote! {
-        impl #generics crate::types::GetRange for #name #generics {
-            #[inline]
-            fn get_range(&self) -> Result<crate::types::Range, crate::types::GetRangeError> {
-                #body
+fn get_fallback(field: &Field, name: &Ident) -> (bool, Option<Ident>) {
+    let mut fallback_field = None;
+    let mut found_attribute = false;
+
+    for attr in &field.attrs {
+        if attr.path().is_ident("range_or") {
+            found_attribute = true;
+
+            if let Meta::NameValue(meta) = &attr.meta {
+                if let Expr::Lit(literal) = &meta.value {
+                    if let Lit::Str(lit_str) = &literal.lit {
+                        fallback_field = Some(syn::Ident::new(&lit_str.value(), name.span()));
+                    }
+                }
             }
+        }
+    }
+
+    (found_attribute, fallback_field)
+}
+
+fn generate_for_fallback(name: &Ident, fallback: Option<Ident>) -> TokenStream {
+    if fallback.is_some() {
+        quote! {{
+            if let Some(item) = &self.#name {
+                item.get_range()
+            } else {
+                self.#fallback.get_range()
+            }
+        }}
+    } else {
+        quote! { self.#name.get_range() }
+    }
+}
+
+pub fn named(fields: &FieldsNamed) -> TokenStream {
+    let Some(first) = fields.named.first() else {
+        must_have_one_item!();
+    };
+    let Some(first_name) = first.ident.as_ref() else {
+        must_have_one_item!();
+    };
+
+    let (found, first_fallback) = get_fallback(first, first_name);
+    if found && first_fallback.is_none() {
+        return error!("`range_or` field must be a string literal.");
+    }
+
+    let first_body = generate_for_fallback(first_name, first_fallback);
+
+    if fields.named.len() == 1 {
+        first_body
+    } else {
+        let Some(last) = fields.named.last() else {
+            must_have_one_item!();
+        };
+        let Some(last_name) = last.ident.as_ref() else {
+            must_have_one_item!();
+        };
+
+        let (found, last_fallback) = get_fallback(last, last_name);
+        if found && last_fallback.is_none() {
+            return error!("`range_or` field must be a string literal.");
+        }
+
+        let last_body = generate_for_fallback(last_name, last_fallback);
+
+        quote! {
+            Ok(crate::types::Range::new(
+                #first_body?.start,
+                #last_body?.end,
+            ))
+        }
+    }
+}
+
+pub fn unnamed(fields: &FieldsUnnamed) -> TokenStream {
+    let len = fields.unnamed.len();
+
+    if len == 1 {
+        quote! { self.0.get_range() }
+    } else {
+        let last = len - 1;
+
+        quote! {
+            Ok(crate::types::Range::new(
+                self.0.get_range()?.start,
+                self.#last.get_range()?.end,
+            ))
         }
     }
 }
