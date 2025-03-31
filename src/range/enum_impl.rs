@@ -6,6 +6,7 @@ use syn::{DataEnum, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
 pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
     let mut match_arms = Vec::new();
     let name = &input.ident;
+    let generics = &input.generics;
 
     for variant in data.variants.iter() {
         let name = &variant.ident;
@@ -22,7 +23,7 @@ pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
     }
 
     quote! {
-        impl crate::types::GetRange for #name {
+        impl #generics crate::types::GetRange for #name #generics {
             #[inline]
             fn get_range(&self) -> Result<crate::types::Range, crate::types::GetRangeError> {
                 match self {
