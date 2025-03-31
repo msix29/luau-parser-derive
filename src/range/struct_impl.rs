@@ -1,6 +1,8 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::{DataStruct, Expr, Field, Fields, FieldsNamed, FieldsUnnamed, Lit, Meta};
+use syn::{DataStruct, Fields, FieldsNamed, FieldsUnnamed};
+
+use super::utils::get_fallback;
 
 macro_rules! must_have_one_item {
     () => {
@@ -15,27 +17,6 @@ pub fn generate(data: &DataStruct) -> TokenStream {
         Fields::Unnamed(fields) => unnamed(fields),
         Fields::Unit => error!("`#[Derive(Range)]` can't be implemented on unit structs."),
     }
-}
-
-fn get_fallback(field: &Field, name: &Ident) -> (bool, Option<Ident>) {
-    let mut fallback_field = None;
-    let mut found_attribute = false;
-
-    for attr in &field.attrs {
-        if attr.path().is_ident("range_or") {
-            found_attribute = true;
-
-            if let Meta::NameValue(meta) = &attr.meta {
-                if let Expr::Lit(literal) = &meta.value {
-                    if let Lit::Str(lit_str) = &literal.lit {
-                        fallback_field = Some(syn::Ident::new(&lit_str.value(), name.span()));
-                    }
-                }
-            }
-        }
-    }
-
-    (found_attribute, fallback_field)
 }
 
 fn generate_for_fallback(name: &Ident, fallback: Option<Ident>) -> TokenStream {
