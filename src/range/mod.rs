@@ -8,11 +8,22 @@ use syn::{parse_macro_input, Data, DeriveInput};
 
 pub fn generate(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
+    let name = &input.ident;
+    let generics = &input.generics;
 
-    match input.data {
-        Data::Struct(ref data_struct) => struct_impl::generate(&input, data_struct),
-        Data::Enum(ref data_enum) => enum_impl::generate(&input, data_enum),
+    let body = match input.data {
+        Data::Struct(ref data_struct) => struct_impl::generate(data_struct),
+        Data::Enum(ref data_enum) => enum_impl::generate(data_enum),
         Data::Union(_) => error!("`#[Derive(Range)]` can't be called on unions."),
+    };
+
+    quote! {
+        impl #generics crate::types::GetRange for #name #generics {
+            #[inline]
+            fn get_range(&self) -> Result<crate::types::Range, crate::types::GetRangeError> {
+                #body
+            }
+        }
     }
     .into()
 }

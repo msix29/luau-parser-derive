@@ -1,12 +1,10 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::{DataEnum, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
+use syn::{DataEnum, Fields, FieldsNamed, FieldsUnnamed};
 
 #[inline]
-pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
+pub fn generate(data: &DataEnum) -> TokenStream {
     let mut match_arms = Vec::new();
-    let name = &input.ident;
-    let generics = &input.generics;
 
     for variant in data.variants.iter() {
         let name = &variant.ident;
@@ -14,7 +12,6 @@ pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
             Fields::Named(fields) => named(name, fields),
             Fields::Unnamed(fields) => unnamed(name, fields),
             Fields::Unit => {
-                // return error!("`#[Derive(Range)]` can't be implemented on unit variants.")
                 quote! { Self::#name => Err(crate::types::GetRangeError::ErrorVariant), }
             }
         };
@@ -23,13 +20,8 @@ pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
     }
 
     quote! {
-        impl #generics crate::types::GetRange for #name #generics {
-            #[inline]
-            fn get_range(&self) -> Result<crate::types::Range, crate::types::GetRangeError> {
-                match self {
-                    #(#match_arms)*
-                }
-            }
+        match self {
+            #(#match_arms)*
         }
     }
 }

@@ -1,32 +1,20 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::{DataStruct, DeriveInput, Expr, Field, Fields, FieldsNamed, FieldsUnnamed, Lit, Meta};
-
-#[inline]
-pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
-    let name = &input.ident;
-    let generics = &input.generics;
-
-    let body = match &data.fields {
-        Fields::Named(fields) => named(fields),
-        Fields::Unnamed(fields) => unnamed(fields),
-        Fields::Unit => return error!("`#[Derive(Range)]` can't be implemented on unit structs."),
-    };
-
-    quote! {
-        impl #generics crate::types::GetRange for #name #generics {
-            #[inline]
-            fn get_range(&self) -> Result<crate::types::Range, crate::types::GetRangeError> {
-                #body
-            }
-        }
-    }
-}
+use syn::{DataStruct, Expr, Field, Fields, FieldsNamed, FieldsUnnamed, Lit, Meta};
 
 macro_rules! must_have_one_item {
     () => {
         return error!("Structs passed to `#[Derive(Range)]` must have at least one item.")
     };
+}
+
+#[inline]
+pub fn generate(data: &DataStruct) -> TokenStream {
+    match &data.fields {
+        Fields::Named(fields) => named(fields),
+        Fields::Unnamed(fields) => unnamed(fields),
+        Fields::Unit => error!("`#[Derive(Range)]` can't be implemented on unit structs."),
+    }
 }
 
 fn get_fallback(field: &Field, name: &Ident) -> (bool, Option<Ident>) {
