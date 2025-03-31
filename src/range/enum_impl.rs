@@ -54,10 +54,10 @@ fn named(name: &Ident, fields: &FieldsNamed) -> TokenStream {
         };
 
         quote! {
-            Self::#name{ #first_name, #last_name, .. } => crate::types::Range::new(
+            Self::#name{ #first_name, #last_name, .. } => Ok(crate::types::Range::new(
                 #first_name.get_range()?.start,
                 #last_name.get_range()?.end,
-            ),
+            )),
         }
     }
 }
