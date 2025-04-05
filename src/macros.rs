@@ -9,9 +9,3 @@ macro_rules! error {
         quote!(#err).into()
     }};
 }
-
-macro_rules! must_have_one_item {
-    () => {
-        return error!("Structs passed to `#[Derive(Range)]` must have at least one item.")
-    };
-}

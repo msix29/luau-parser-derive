@@ -4,6 +4,12 @@ use syn::{DataEnum, Fields, FieldsNamed, FieldsUnnamed};
 
 use super::utils::get_fallback;
 
+macro_rules! must_have_one_item {
+    () => {
+        return error!("Structs passed to `#[Derive(Range)]` must have at least one item.")
+    };
+}
+
 #[inline]
 pub fn generate(data: &DataEnum) -> TokenStream {
     let mut match_arms = Vec::new();
