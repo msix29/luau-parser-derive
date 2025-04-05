@@ -1,0 +1,62 @@
+use proc_macro2::{TokenStream, Literal};
+use quote::quote;
+use syn::{DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
+
+use super::{utils, CodeData};
+
+macro_rules! must_have_one_item {
+    () => {
+        "Structs passed to `#[Derive(Print)]` must have at least one item."
+    };
+}
+
+#[inline]
+pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
+    let name = &input.ident;
+    let generics = &input.generics;
+
+    let data = match &data.fields {
+        Fields::Named(fields) => named(fields),
+        Fields::Unnamed(fields) => unnamed(fields),
+        Fields::Unit => CodeData::error("`#[Derive(Range)]` can't be implemented on unit structs."),
+    };
+
+    let print_body = utils::generate_print(&data);
+
+    quote! {
+        impl #generics crate::types::Print for #name #generics {
+            #[inline]
+            fn print(&self) -> String {
+                #print_body
+            }
+        }
+    }
+}
+
+pub fn named(fields: &FieldsNamed) -> CodeData {
+    utils::generate(
+        fields
+            .named
+            .iter()
+            .map(|field| {
+                let name = field.ident.as_ref().unwrap();
+                quote! { self.#name }
+            })
+            .collect(),
+    )
+}
+
+pub fn unnamed(fields: &FieldsUnnamed) -> CodeData {
+    if fields.unnamed.is_empty() {
+        return CodeData::error(must_have_one_item!());
+    }
+
+    utils::generate(
+        (0..fields.unnamed.len())
+            .map(|i| {
+                let i = Literal::usize_unsuffixed(i);
+                quote! { self.#i }
+            })
+            .collect(),
+    )
+}

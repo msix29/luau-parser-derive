@@ -1,6 +1,7 @@
 #[macro_use]
 mod macros;
 
+mod print;
 mod range;
 
 use proc_macro::TokenStream;
@@ -9,4 +10,10 @@ use proc_macro::TokenStream;
 #[inline]
 pub fn range(input: TokenStream) -> TokenStream {
     range::generate(input)
+}
+
+#[proc_macro_derive(Print)]
+#[inline]
+pub fn print(input: TokenStream) -> TokenStream {
+    print::generate(input)
 }
