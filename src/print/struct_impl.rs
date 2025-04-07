@@ -1,6 +1,6 @@
 //! `#[Derive(Range)]` implementation for structs.
 
-use proc_macro2::{TokenStream, Literal};
+use proc_macro2::{Literal, TokenStream};
 use quote::quote;
 use syn::{DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
 

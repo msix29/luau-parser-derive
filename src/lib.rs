@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-
 #![deny(unsafe_code)]
 #![warn(clippy::missing_docs_in_private_items)]
 #![warn(missing_docs)]
