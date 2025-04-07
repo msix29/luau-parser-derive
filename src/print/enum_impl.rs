@@ -1,3 +1,5 @@
+//! `#[Derive(Range)]` implementation for enums.
+
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 use std::collections::HashMap;
@@ -5,17 +7,23 @@ use syn::{DataEnum, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
 
 use super::{utils, CodeData};
 
+/// An error saying that this enum variant must have at least one item.
 macro_rules! must_have_one_item {
     () => {
-        "Structs passed to `#[Derive(Print)]` must have at least one item."
+        "Enum variants passed to `#[Derive(Print)]` must have at least one item."
     };
 }
 
+/// A private enum for source generation
 enum Data {
+    /// Name of available fields.
     CodeData(CodeData),
+
+    /// A match arm (used for unit fields).
     MatchArm(TokenStream),
 }
 
+/// Generate the code for an enum.
 #[inline]
 pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
     let name = &input.ident;
@@ -80,6 +88,7 @@ pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
     }
 }
 
+/// Get the data for a named enum variant.
 fn named(fields: &FieldsNamed) -> Data {
     Data::CodeData(utils::generate(
         fields
@@ -93,6 +102,7 @@ fn named(fields: &FieldsNamed) -> Data {
     ))
 }
 
+/// Get the data for an unnamed enum variant.
 fn unnamed(fields: &FieldsUnnamed) -> Data {
     if fields.unnamed.is_empty() {
         return Data::CodeData(CodeData::error(must_have_one_item!()));

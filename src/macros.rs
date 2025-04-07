@@ -1,3 +1,6 @@
+//! Helpful macros for the crate
+
+/// Send an error
 macro_rules! error {
     ($message: expr) => {{
         let err = syn::Error::new(

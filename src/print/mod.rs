@@ -1,3 +1,5 @@
+//! The `#[Derive(Range)]` macro.
+
 mod enum_impl;
 mod struct_impl;
 mod utils;
@@ -6,14 +8,20 @@ use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{parse_macro_input, Data, DeriveInput};
 
+/// Code data for each struct/enum variant.
 struct CodeData<A = proc_macro2::TokenStream, B = A, C = A>
 where
     A: ToTokens,
     B: ToTokens,
     C: ToTokens,
 {
+    /// The very first name.
     pub first: A,
+
+    /// Any names excluding the first and last.
     pub middle: Vec<B>,
+
+    /// The last name, which may or may not exist.
     pub last: Option<C>,
 }
 
@@ -23,6 +31,7 @@ where
     B: ToTokens,
     C: ToTokens,
 {
+    /// Create data which sends an error.
     fn error(message: &str) -> Self {
         Self {
             first: error!(message),
@@ -32,6 +41,7 @@ where
     }
 }
 
+/// Generate code for the `#[Derive(Print)]` macro.
 pub fn generate(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 

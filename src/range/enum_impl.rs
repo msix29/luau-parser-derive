@@ -1,15 +1,19 @@
+//! `#[Derive(Range)]` implementation for structs.
+
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::{DataEnum, Fields, FieldsNamed, FieldsUnnamed};
 
 use super::utils::get_fallback;
 
+/// An error saying that this enum variant must have at least one item.
 macro_rules! must_have_one_item {
     () => {
-        return error!("Structs passed to `#[Derive(Range)]` must have at least one item.")
+        return error!("Enum variants passed to `#[Derive(Range)]` must have at least one item.")
     };
 }
 
+/// Generate the code for an enum.
 #[inline]
 pub fn generate(data: &DataEnum) -> TokenStream {
     let mut match_arms = Vec::new();
@@ -34,6 +38,7 @@ pub fn generate(data: &DataEnum) -> TokenStream {
     }
 }
 
+/// Generate the code which accounts for the fallback field.
 fn generate_for_fallback(name: &Ident, fallback: &Option<Ident>) -> TokenStream {
     if fallback.is_some() {
         quote! {{
@@ -48,6 +53,7 @@ fn generate_for_fallback(name: &Ident, fallback: &Option<Ident>) -> TokenStream 
     }
 }
 
+/// Generate the code for a named enum variant.
 fn named(name: &Ident, fields: &FieldsNamed) -> TokenStream {
     let Some(first) = fields.named.first() else {
         must_have_one_item!();
@@ -103,6 +109,7 @@ fn named(name: &Ident, fields: &FieldsNamed) -> TokenStream {
     }
 }
 
+/// Generate the code for an unnamed enum variant.
 fn unnamed(name: &Ident, fields: &FieldsUnnamed) -> TokenStream {
     if fields.unnamed.len() == 1 {
         quote! {

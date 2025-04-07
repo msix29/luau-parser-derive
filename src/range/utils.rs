@@ -1,6 +1,9 @@
+//! Helpful functions for the `#[Derive(Range)]` macro.
+
 use proc_macro2::Ident;
 use syn::{Expr, Field, Lit, Meta};
 
+/// Get fallback fields, if available.
 pub fn get_fallback(field: &Field, name: &Ident) -> (bool, Option<Ident>) {
     let mut fallback_field = None;
     let mut found_attribute = false;

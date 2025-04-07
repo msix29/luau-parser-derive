@@ -1,15 +1,19 @@
+//! `#[Derive(Print)]` implementation for structs.
+
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::{DataStruct, Fields, FieldsNamed, FieldsUnnamed};
 
 use super::utils::get_fallback;
 
+/// An error saying that this struct must have at least one item.
 macro_rules! must_have_one_item {
     () => {
         return error!("Structs passed to `#[Derive(Range)]` must have at least one item.")
     };
 }
 
+/// Generate the code for a struct.
 #[inline]
 pub fn generate(data: &DataStruct) -> TokenStream {
     match &data.fields {
@@ -19,6 +23,7 @@ pub fn generate(data: &DataStruct) -> TokenStream {
     }
 }
 
+/// Generate the code which accounts for the fallback field.
 fn generate_for_fallback(name: &Ident, fallback: Option<Ident>) -> TokenStream {
     if fallback.is_some() {
         quote! {{
@@ -33,6 +38,7 @@ fn generate_for_fallback(name: &Ident, fallback: Option<Ident>) -> TokenStream {
     }
 }
 
+/// Generate the code for a named struct.
 pub fn named(fields: &FieldsNamed) -> TokenStream {
     let Some(first) = fields.named.first() else {
         must_have_one_item!();
@@ -74,6 +80,7 @@ pub fn named(fields: &FieldsNamed) -> TokenStream {
     }
 }
 
+/// Generate the code for an unnamed struct.
 pub fn unnamed(fields: &FieldsUnnamed) -> TokenStream {
     let len = fields.unnamed.len();
 

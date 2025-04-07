@@ -1,8 +1,11 @@
+//! Helpful functions for the `#[Derive(Print)]` macro.
+
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
 use super::CodeData;
 
+/// Get the data for the passed names.
 pub fn generate<T: ToTokens + Clone>(names: Vec<T>) -> CodeData<T> {
     assert!(!names.is_empty());
 
@@ -31,6 +34,7 @@ pub fn generate<T: ToTokens + Clone>(names: Vec<T>) -> CodeData<T> {
     }
 }
 
+/// Generate the print function depending on the passed data.
 pub fn generate_print<A, B, C>(data: &CodeData<A, B, C>) -> TokenStream
 where
     A: ToTokens,

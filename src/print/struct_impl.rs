@@ -1,15 +1,19 @@
+//! `#[Derive(Range)]` implementation for structs.
+
 use proc_macro2::{TokenStream, Literal};
 use quote::quote;
 use syn::{DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
 
 use super::{utils, CodeData};
 
+/// An error saying that this struct must have at least one item.
 macro_rules! must_have_one_item {
     () => {
         "Structs passed to `#[Derive(Print)]` must have at least one item."
     };
 }
 
+/// Generate the code for a struct.
 #[inline]
 pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
     let name = &input.ident;
@@ -33,6 +37,7 @@ pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
     }
 }
 
+/// Get the data for a named struct.
 pub fn named(fields: &FieldsNamed) -> CodeData {
     utils::generate(
         fields
@@ -46,6 +51,7 @@ pub fn named(fields: &FieldsNamed) -> CodeData {
     )
 }
 
+/// Get the data for an unnamed struct.
 pub fn unnamed(fields: &FieldsUnnamed) -> CodeData {
     if fields.unnamed.is_empty() {
         return CodeData::error(must_have_one_item!());

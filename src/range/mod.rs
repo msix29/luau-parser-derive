@@ -1,3 +1,5 @@
+//! The `#[Derive(Range)]` macro.
+
 mod enum_impl;
 mod struct_impl;
 mod utils;
@@ -6,6 +8,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, Data, DeriveInput};
 
+/// Generate code for the `#[Derive(Range)]` macro.
 pub fn generate(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
