@@ -25,13 +25,19 @@ pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
         Fields::Unit => CodeData::error("`#[Derive(Range)]` can't be implemented on unit structs."),
     };
 
-    let print_body = utils::generate_print(&data);
+    let print_without_final_trivia_body = utils::generate_print_without_final_trivia(&data);
+    let print_final_trivia_body = utils::generate_print_final_trivia(&data);
 
     quote! {
         impl #generics crate::types::Print for #name #generics {
             #[inline]
-            fn print(&self) -> String {
-                #print_body
+            fn print_final_trivia(&self) -> String {
+                #print_final_trivia_body
+            }
+
+            #[inline]
+            fn print_without_final_trivia(&self) -> String {
+                #print_without_final_trivia_body
             }
         }
     }

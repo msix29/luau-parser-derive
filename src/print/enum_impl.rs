@@ -49,10 +49,11 @@ pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
         match_arms_data.insert(name, (arm, is_named));
     }
 
-    let mut print_arms = Vec::new();
+    let mut arms = Vec::new();
+    let mut last_trivia_arms = Vec::new();
 
     for (arm, (data, is_named)) in match_arms_data {
-        let print_body = match data {
+        let (body, final_trivia) = match data {
             Data::CodeData(data) => {
                 let mut all_names = data.middle.clone();
                 all_names.push(data.first.clone());
@@ -66,22 +67,35 @@ pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
                     quote! {Self::#arm( #(#all_names,)* )}
                 };
 
-                let print_body = utils::generate_print(&data);
+                let print_without_final_trivia_body =
+                    utils::generate_print_without_final_trivia(&data);
+                let print_final_trivia_body = utils::generate_print_final_trivia(&data);
 
-                quote! { #start => { #print_body } }
+                (
+                    quote! { #start => { #print_without_final_trivia_body } },
+                    quote! { #start => { #print_final_trivia_body } },
+                )
             }
-            Data::MatchArm(body) => body,
+            Data::MatchArm(body) => (body.clone(), body),
         };
 
-        print_arms.push(print_body);
+        arms.push(body);
+        last_trivia_arms.push(final_trivia);
     }
 
     quote! {
         impl #generics crate::types::Print for #name #generics {
             #[inline]
-            fn print(&self) -> String {
+            fn print_final_trivia(&self) -> String {
                 match self {
-                    #(#print_arms)*
+                    #(#last_trivia_arms)*
+                }
+            }
+
+            #[inline]
+            fn print_without_final_trivia(&self) -> String {
+                match self {
+                    #(#arms)*
                 }
             }
         }

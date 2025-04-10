@@ -34,8 +34,8 @@ pub fn generate<T: ToTokens + Clone>(names: Vec<T>) -> CodeData<T> {
     }
 }
 
-/// Generate the print function depending on the passed data.
-pub fn generate_print<A, B, C>(data: &CodeData<A, B, C>) -> TokenStream
+/// Generate the `print_without_final_trivia` function depending on the passed data.
+pub fn generate_print_without_final_trivia<A, B, C>(data: &CodeData<A, B, C>) -> TokenStream
 where
     A: ToTokens,
     B: ToTokens,
@@ -46,16 +46,28 @@ where
     let last = &data.last;
 
     let last_operation = if let Some(last) = last {
-        quote! { start = start.trim_end().to_string() + &#last.print(); }
+        quote! { string.push_str(&#last.print_without_final_trivia()); }
     } else {
         quote! {}
     };
 
     quote! {
-        let mut start = #first.print();
-        #(start = start.trim_end().to_string() + &#middle.print();)*
+        let mut string = #first.print_without_final_trivia();
+        #(string.push_str(&#middle.print_without_final_trivia());)*
         #last_operation
 
-        start
+        string
     }
+}
+
+/// Generate the print_final_trivia function depending on the passed data.
+#[inline]
+pub fn generate_print_final_trivia<A: ToTokens>(data: &CodeData<A>) -> TokenStream {
+    let last = data
+        .last
+        .as_ref()
+        .or_else(|| data.middle.last())
+        .unwrap_or(&data.first);
+
+    quote! { #last.print_final_trivia() }
 }
