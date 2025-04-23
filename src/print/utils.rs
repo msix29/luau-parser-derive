@@ -1,7 +1,7 @@
 //! Helpful functions for the `#[Derive(Print)]` macro.
 
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 
 use super::CodeData;
 
@@ -63,11 +63,18 @@ where
 /// Generate the print_final_trivia function depending on the passed data.
 #[inline]
 pub fn generate_print_final_trivia<A: ToTokens>(data: &CodeData<A>) -> TokenStream {
-    let last = data
-        .last
-        .as_ref()
-        .or_else(|| data.middle.last())
-        .unwrap_or(&data.first);
+    let before_last = data.middle.last().unwrap_or(&data.first);
 
-    quote! { #last.print_final_trivia() }
+    if let Some(last) = &data.last {
+        quote! {
+            let maybe_final_trivia = #last.print_final_trivia();
+            if maybe_final_trivia.is_empty() {
+                #before_last.print_final_trivia()
+            } else {
+                maybe_final_trivia
+            }
+        }
+    } else {
+        quote! { #before_last.print_final_trivia() }
+    }
 }
