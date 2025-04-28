@@ -24,7 +24,6 @@ enum Data {
 }
 
 /// Generate the code for an enum.
-#[inline]
 pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
     let name = &input.ident;
     let generics = &input.generics;
@@ -86,6 +85,7 @@ pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
     quote! {
         impl #generics crate::types::Print for #name #generics {
             #[inline]
+            #[allow(unused)]
             fn print_final_trivia(&self) -> String {
                 match self {
                     #(#last_trivia_arms)*
@@ -93,6 +93,7 @@ pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
             }
 
             #[inline]
+            #[allow(unused)]
             fn print_without_final_trivia(&self) -> String {
                 match self {
                     #(#arms)*

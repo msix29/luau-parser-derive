@@ -14,7 +14,6 @@ macro_rules! must_have_one_item {
 }
 
 /// Generate the code for a struct.
-#[inline]
 pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
     let name = &input.ident;
     let generics = &input.generics;
@@ -31,11 +30,13 @@ pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
     quote! {
         impl #generics crate::types::Print for #name #generics {
             #[inline]
+            #[allow(unused)]
             fn print_final_trivia(&self) -> String {
                 #print_final_trivia_body
             }
 
             #[inline]
+            #[allow(unused)]
             fn print_without_final_trivia(&self) -> String {
                 #print_without_final_trivia_body
             }
