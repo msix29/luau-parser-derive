@@ -24,7 +24,7 @@ pub fn generate(input: TokenStream) -> TokenStream {
         impl #generics crate::types::GetRange for #name #generics {
             #[inline]
             #[allow(unused)]
-            fn get_range(&self) -> Result<crate::types::Range, crate::types::GetRangeError> {
+            fn get_range(&self) -> Result<lsp_types::Range, crate::types::GetRangeError> {
                 #body
             }
         }

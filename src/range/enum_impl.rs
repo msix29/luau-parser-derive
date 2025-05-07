@@ -101,7 +101,7 @@ fn named(name: &Ident, fields: &FieldsNamed) -> TokenStream {
         }
 
         quote! {
-            Self::#name { #(#referenced_fields,)* .. } => Ok(crate::types::Range::new(
+            Self::#name { #(#referenced_fields,)* .. } => Ok(lsp_types::Range::new(
                 #first_body?.start,
                 #last_body?.end,
             )),
@@ -117,7 +117,7 @@ fn unnamed(name: &Ident, fields: &FieldsUnnamed) -> TokenStream {
         }
     } else {
         quote! {
-            Self::#name(item1, .., item2) => crate::types::Range::new(
+            Self::#name(item1, .., item2) => lsp_types::Range::new(
                 item1.get_range()?.start,
                 item2.get_range()?.end,
             ),

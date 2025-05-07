@@ -72,7 +72,7 @@ pub fn named(fields: &FieldsNamed) -> TokenStream {
         let last_body = generate_for_fallback(last_name, last_fallback);
 
         quote! {
-            Ok(crate::types::Range::new(
+            Ok(lsp_types::Range::new(
                 #first_body?.start,
                 #last_body?.end,
             ))
@@ -90,7 +90,7 @@ pub fn unnamed(fields: &FieldsUnnamed) -> TokenStream {
         let last = len - 1;
 
         quote! {
-            Ok(crate::types::Range::new(
+            Ok(lsp_types::Range::new(
                 self.0.get_range()?.start,
                 self.#last.get_range()?.end,
             ))
