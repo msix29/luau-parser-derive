@@ -1,4 +1,4 @@
-//! The `#[Derive(Range)]` macro.
+//! The `#[Derive(Print)]` macro.
 
 mod enum_impl;
 mod struct_impl;

@@ -1,4 +1,4 @@
-//! `#[Derive(Range)]` implementation for enums.
+//! `#[Derive(Print)]` implementation for enums.
 
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;

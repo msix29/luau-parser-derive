@@ -1,4 +1,4 @@
-//! `#[Derive(Range)]` implementation for structs.
+//! `#[Derive(Print)]` implementation for structs.
 
 use proc_macro2::{Literal, TokenStream};
 use quote::quote;
