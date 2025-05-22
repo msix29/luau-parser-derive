@@ -68,11 +68,10 @@ fn named(name: &Ident, fields: &FieldsNamed) -> TokenStream {
 
     let first_body = generate_for_fallback(first_name, &first_fallback);
 
-    let mut referenced_fields = if let Some(first_fallback) = first_fallback {
-        vec![first_name.clone(), first_fallback]
-    } else {
-        vec![first_name.clone()]
-    };
+    let mut referenced_fields = first_fallback.map_or_else(
+        || vec![first_name.clone()],
+        |first_fallback| vec![first_name.clone(), first_fallback],
+    );
 
     if fields.named.len() == 1 {
         quote! {

@@ -4,7 +4,7 @@ use proc_macro2::{Literal, TokenStream};
 use quote::quote;
 use syn::{DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
 
-use super::{utils, CodeData};
+use super::{CodeData, utils};
 
 /// An error saying that this struct must have at least one item.
 macro_rules! must_have_one_item {
@@ -47,14 +47,16 @@ pub fn generate(input: &DeriveInput, data: &DataStruct) -> TokenStream {
 /// Get the data for a named struct.
 pub fn named(fields: &FieldsNamed) -> CodeData {
     utils::generate(
-        fields
+        &fields
             .named
             .iter()
             .map(|field| {
+                // SAFETY: We know this is a named field. It'll never error.
+                #[allow(clippy::unwrap_used)]
                 let name = field.ident.as_ref().unwrap();
                 quote! { self.#name }
             })
-            .collect(),
+            .collect::<Vec<_>>(),
     )
 }
 
@@ -65,11 +67,11 @@ pub fn unnamed(fields: &FieldsUnnamed) -> CodeData {
     }
 
     utils::generate(
-        (0..fields.unnamed.len())
+        &(0..fields.unnamed.len())
             .map(|i| {
                 let i = Literal::usize_unsuffixed(i);
                 quote! { self.#i }
             })
-            .collect(),
+            .collect::<Vec<_>>(),
     )
 }

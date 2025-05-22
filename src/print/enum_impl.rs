@@ -5,7 +5,7 @@ use quote::quote;
 use std::collections::HashMap;
 use syn::{DataEnum, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
 
-use super::{utils, CodeData};
+use super::{CodeData, utils};
 
 /// An error saying that this enum variant must have at least one item.
 macro_rules! must_have_one_item {
@@ -106,14 +106,16 @@ pub fn generate(input: &DeriveInput, data: &DataEnum) -> TokenStream {
 /// Get the data for a named enum variant.
 fn named(fields: &FieldsNamed) -> Data {
     Data::CodeData(utils::generate(
-        fields
+        &fields
             .named
             .iter()
             .map(|field| {
+                // SAFETY: We know this is a named field. It'll never error.
+                #[allow(clippy::unwrap_used)]
                 let name = field.ident.as_ref().unwrap();
                 quote! { #name }
             })
-            .collect(),
+            .collect::<Vec<_>>(),
     ))
 }
 
@@ -124,12 +126,12 @@ fn unnamed(fields: &FieldsUnnamed) -> Data {
     }
 
     Data::CodeData(utils::generate(
-        (0..fields.unnamed.len())
+        &(0..fields.unnamed.len())
             .map(|i| {
                 let ident = Ident::new(&format!("item{i}"), Span::call_site());
 
                 quote! { #ident }
             })
-            .collect(),
+            .collect::<Vec<_>>(),
     ))
 }

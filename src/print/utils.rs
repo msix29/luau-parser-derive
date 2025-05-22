@@ -6,7 +6,7 @@ use quote::{ToTokens, quote};
 use super::CodeData;
 
 /// Get the data for the passed names.
-pub fn generate<T: ToTokens + Clone>(names: Vec<T>) -> CodeData<T> {
+pub fn generate<T: ToTokens + Clone>(names: &[T]) -> CodeData<T> {
     assert!(!names.is_empty());
 
     if names.len() == 1 {
@@ -45,11 +45,10 @@ where
     let middle = &data.middle;
     let last = &data.last;
 
-    let last_operation = if let Some(last) = last {
-        quote! { string.push_str(&#last.print_without_final_trivia()); }
-    } else {
-        quote! {}
-    };
+    let last_operation = last.as_ref().map_or_else(
+        || quote! {},
+        |last| quote! { string.push_str(&#last.print_without_final_trivia()); },
+    );
 
     quote! {
         let mut string = #first.print_without_final_trivia();
@@ -60,21 +59,22 @@ where
     }
 }
 
-/// Generate the print_final_trivia function depending on the passed data.
+/// Generate the `print_final_trivia` function depending on the passed data.
 #[inline]
 pub fn generate_print_final_trivia<A: ToTokens>(data: &CodeData<A>) -> TokenStream {
     let before_last = data.middle.last().unwrap_or(&data.first);
 
-    if let Some(last) = &data.last {
-        quote! {
-            let maybe_final_trivia = #last.print_final_trivia();
-            if maybe_final_trivia.is_empty() {
-                #before_last.print_final_trivia()
-            } else {
-                maybe_final_trivia
+    data.last.as_ref().map_or_else(
+        || quote! { #before_last.print_final_trivia() },
+        |last| {
+            quote! {
+                let maybe_final_trivia = #last.print_final_trivia();
+                if maybe_final_trivia.is_empty() {
+                    #before_last.print_final_trivia()
+                } else {
+                    maybe_final_trivia
+                }
             }
-        }
-    } else {
-        quote! { #before_last.print_final_trivia() }
-    }
+        },
+    )
 }

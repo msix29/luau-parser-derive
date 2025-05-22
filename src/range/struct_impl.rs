@@ -24,7 +24,7 @@ pub fn generate(data: &DataStruct) -> TokenStream {
 }
 
 /// Generate the code which accounts for the fallback field.
-fn generate_for_fallback(name: &Ident, fallback: Option<Ident>) -> TokenStream {
+fn generate_for_fallback(name: &Ident, fallback: Option<&Ident>) -> TokenStream {
     if fallback.is_some() {
         quote! {{
             if let Some(item) = &self.#name {
@@ -52,7 +52,7 @@ pub fn named(fields: &FieldsNamed) -> TokenStream {
         return error!("`range_or` field must be a string literal.");
     }
 
-    let first_body = generate_for_fallback(first_name, first_fallback);
+    let first_body = generate_for_fallback(first_name, first_fallback.as_ref());
 
     if fields.named.len() == 1 {
         first_body
@@ -69,7 +69,7 @@ pub fn named(fields: &FieldsNamed) -> TokenStream {
             return error!("`range_or` field must be a string literal.");
         }
 
-        let last_body = generate_for_fallback(last_name, last_fallback);
+        let last_body = generate_for_fallback(last_name, last_fallback.as_ref());
 
         quote! {
             Ok(lsp_types::Range::new(
